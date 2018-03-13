@@ -1167,6 +1167,17 @@ static int dwc3_core_init(struct dwc3 *dwc)
 		}
 	}
 
+	/*
+	 * Enable evicting endpoint cache after flow control for bulk
+	 * endpoints from dwc3 core version 3.00a to 3.30b
+	 */
+	if ((dwc->revision >= DWC3_REVISION_300A) &&
+		(dwc->revision <= DWC3_REVISION_330B)) {
+		reg = dwc3_readl(dwc->regs, DWC3_GUCTL2);
+		reg |= DWC3_GUCTL2_ENABLE_EP_CACHE_EVICT;
+		dwc3_writel(dwc->regs, DWC3_GUCTL2, reg);
+	}
+
 	return 0;
 
 err4:
