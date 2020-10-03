@@ -137,6 +137,9 @@ static int __dwc2_lowlevel_hw_enable(struct dwc2_hsotg *hsotg)
 			return ret;
 	}
 
+	reset_control_assert(hsotg->reset);
+	reset_control_assert(hsotg->reset_ecc);
+
 	if (hsotg->uphy) {
 		ret = usb_phy_init(hsotg->uphy);
 	} else if (hsotg->plat && hsotg->plat->phy_init) {
@@ -146,6 +149,11 @@ static int __dwc2_lowlevel_hw_enable(struct dwc2_hsotg *hsotg)
 		if (ret == 0)
 			ret = phy_power_on(hsotg->phy);
 	}
+
+	reset_control_deassert(hsotg->reset);
+	udelay(10);
+	reset_control_deassert(hsotg->reset_ecc);
+	udelay(50);
 
 	return ret;
 }
@@ -221,24 +229,12 @@ static int dwc2_lowlevel_hw_init(struct dwc2_hsotg *hsotg)
 		return ret;
 	}
 
-	reset_control_deassert(hsotg->reset);
-	ret = devm_add_action_or_reset(hsotg->dev, dwc2_reset_control_assert,
-				       hsotg->reset);
-	if (ret)
-		return ret;
-
 	hsotg->reset_ecc = devm_reset_control_get_optional(hsotg->dev, "dwc2-ecc");
 	if (IS_ERR(hsotg->reset_ecc)) {
 		ret = PTR_ERR(hsotg->reset_ecc);
 		dev_err(hsotg->dev, "error getting reset control for ecc %d\n", ret);
 		return ret;
 	}
-
-	reset_control_deassert(hsotg->reset_ecc);
-	ret = devm_add_action_or_reset(hsotg->dev, dwc2_reset_control_assert,
-				       hsotg->reset_ecc);
-	if (ret)
-		return ret;
 
 	/*
 	 * Attempt to find a generic PHY, then look for an old style
