@@ -1089,6 +1089,7 @@ struct dwc2_hsotg {
 	void *priv;
 	int     irq;
 	struct clk *clk;
+	struct clk *core_clk;
 	struct reset_control *reset;
 	struct reset_control *reset_ecc;
 

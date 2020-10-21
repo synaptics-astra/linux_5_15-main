@@ -134,7 +134,13 @@ static int __dwc2_lowlevel_hw_enable(struct dwc2_hsotg *hsotg)
 	if (hsotg->clk) {
 		ret = clk_prepare_enable(hsotg->clk);
 		if (ret)
-			return ret;
+			goto err0;
+	}
+
+	if (hsotg->core_clk) {
+		ret = clk_prepare_enable(hsotg->core_clk);
+		if (ret)
+			goto err1;
 	}
 
 	reset_control_assert(hsotg->reset);
@@ -150,11 +156,25 @@ static int __dwc2_lowlevel_hw_enable(struct dwc2_hsotg *hsotg)
 			ret = phy_power_on(hsotg->phy);
 	}
 
+	if (ret)
+		goto err2;
+
 	reset_control_deassert(hsotg->reset);
 	udelay(10);
 	reset_control_deassert(hsotg->reset_ecc);
 	udelay(50);
 
+	return 0;
+
+err2:
+	if (hsotg->core_clk)
+		clk_disable_unprepare(hsotg->core_clk);
+err1:
+	if (hsotg->clk)
+		clk_disable_unprepare(hsotg->clk);
+err0:
+	regulator_bulk_disable(ARRAY_SIZE(hsotg->supplies),
+				     hsotg->supplies);
 	return ret;
 }
 
@@ -193,6 +213,9 @@ static int __dwc2_lowlevel_hw_disable(struct dwc2_hsotg *hsotg)
 
 	if (hsotg->clk)
 		clk_disable_unprepare(hsotg->clk);
+
+	if (hsotg->core_clk)
+		clk_disable_unprepare(hsotg->core_clk);
 
 	return regulator_bulk_disable(ARRAY_SIZE(hsotg->supplies), hsotg->supplies);
 }
@@ -282,6 +305,12 @@ static int dwc2_lowlevel_hw_init(struct dwc2_hsotg *hsotg)
 	if (IS_ERR(hsotg->clk)) {
 		dev_err(hsotg->dev, "cannot get otg clock\n");
 		return PTR_ERR(hsotg->clk);
+	}
+
+	hsotg->core_clk = devm_clk_get_optional(hsotg->dev, "core");
+	if (IS_ERR(hsotg->core_clk)) {
+		dev_err(hsotg->dev, "cannot get core clock\n");
+		return PTR_ERR(hsotg->core_clk);
 	}
 
 	/* Regulators */
