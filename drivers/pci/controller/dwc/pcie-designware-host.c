@@ -352,6 +352,7 @@ int dw_pcie_host_init(struct pcie_port *pp)
 			if (ret < 0)
 				return ret;
 		} else if (pp->has_msi_ctrl) {
+			u32 ctrl, num_ctrls;
 			if (!pp->msi_irq) {
 				pp->msi_irq = platform_get_irq_byname_optional(pdev, "msi");
 				if (pp->msi_irq < 0) {
@@ -360,6 +361,9 @@ int dw_pcie_host_init(struct pcie_port *pp)
 						return pp->msi_irq;
 				}
 			}
+			num_ctrls = pp->num_vectors / MAX_MSI_IRQS_PER_CTRL;
+			for (ctrl = 0; ctrl < num_ctrls; ctrl++)
+				pp->irq_mask[ctrl] = ~0;
 
 			pp->msi_irq_chip = &dw_pci_msi_bottom_irq_chip;
 
