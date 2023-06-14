@@ -5638,6 +5638,92 @@ int dwc2_host_exit_hibernation(struct dwc2_hsotg *hsotg, int rem_wakeup,
 	return ret;
 }
 
+/*
+ * dwc2_host_exit_suspend()
+ *
+ * @hsotg: Programming view of the DWC_otg controller
+ *
+ * Return: non-zero if failed to exit from suspend.
+ */
+int dwc2_host_exit_suspend(struct dwc2_hsotg *hsotg)
+{
+	u32 hprt0;
+	int ret = 0;
+	struct dwc2_gregs_backup *gr;
+	struct dwc2_hregs_backup *hr;
+
+	gr = &hsotg->gr_backup;
+	hr = &hsotg->hr_backup;
+
+	dev_dbg(hsotg->dev, "%s: called\n", __func__);
+	dwc2_restore_essential_regs(hsotg, 0, 1);
+
+	/*
+	 * This step is not described in functional spec but if not wait for
+	 * this delay, mismatch interrupts occurred because just after restore
+	 * core is in Device mode(gintsts.curmode == 0)
+	 */
+	mdelay(10);
+
+	/* Clear all pending interupts */
+	dwc2_writel(hsotg, 0xffffffff, GINTSTS);
+
+	/* Restore GUSBCFG, HCFG */
+	dwc2_writel(hsotg, gr->gusbcfg, GUSBCFG);
+	dwc2_writel(hsotg, hr->hcfg, HCFG);
+
+	udelay(10);
+
+	hprt0 = hr->hprt0;
+	hprt0 |= HPRT0_PWR;
+	hprt0 &= ~HPRT0_ENA;
+	hprt0 &= ~HPRT0_SUSP;
+	dwc2_writel(hsotg, hprt0, HPRT0);
+
+	hprt0 = hr->hprt0;
+	hprt0 |= HPRT0_PWR;
+	hprt0 &= ~HPRT0_ENA;
+	hprt0 &= ~HPRT0_SUSP;
+	hprt0 |= HPRT0_RES;
+	dwc2_writel(hsotg, hprt0, HPRT0);
+
+	/* Wait for Resume time and then program HPRT again */
+	mdelay(100);
+	hprt0 &= ~HPRT0_RES;
+	dwc2_writel(hsotg, hprt0, HPRT0);
+
+	/* Clear all interrupt status */
+	hprt0 = dwc2_readl(hsotg, HPRT0);
+	hprt0 |= HPRT0_CONNDET;
+	hprt0 |= HPRT0_ENACHG;
+	hprt0 &= ~HPRT0_ENA;
+	dwc2_writel(hsotg, hprt0, HPRT0);
+
+	hprt0 = dwc2_readl(hsotg, HPRT0);
+
+	/* Clear all pending interupts */
+	dwc2_writel(hsotg, 0xffffffff, GINTSTS);
+
+	/* Restore global registers */
+	ret = dwc2_restore_global_registers(hsotg);
+	if (ret) {
+		dev_err(hsotg->dev, "%s: failed to restore registers\n",
+			__func__);
+		return ret;
+	}
+
+	/* Restore host registers */
+	ret = dwc2_restore_host_registers(hsotg);
+	if (ret) {
+		dev_err(hsotg->dev, "%s: failed to restore host registers\n",
+			__func__);
+		return ret;
+	}
+
+	hsotg->lx_state = DWC2_L0;
+	return 0;
+}
+
 bool dwc2_host_can_poweroff_phy(struct dwc2_hsotg *dwc2)
 {
 	struct usb_device *root_hub = dwc2_hsotg_to_hcd(dwc2)->self.root_hub;
