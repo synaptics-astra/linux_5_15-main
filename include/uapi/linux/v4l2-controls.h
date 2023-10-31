@@ -808,6 +808,88 @@ enum v4l2_mpeg_video_frame_skip_mode {
 #define V4L2_CID_MPEG_VIDEO_DEC_DISPLAY_DELAY		(V4L2_CID_CODEC_BASE + 653)
 #define V4L2_CID_MPEG_VIDEO_DEC_DISPLAY_DELAY_ENABLE	(V4L2_CID_CODEC_BASE + 654)
 
+#define V4L2_CID_MPEG_VIDEO_AV1_PROFILE (V4L2_CID_CODEC_BASE + 655)
+/**
+ * enum v4l2_mpeg_video_av1_profile - AV1 profiles
+ *
+ * @V4L2_MPEG_VIDEO_AV1_PROFILE_MAIN: compliant decoders must be able to decode
+ * streams with seq_profile equal to 0.
+ * @V4L2_MPEG_VIDEO_AV1_PROFILE_HIGH: compliant decoders must be able to decode
+ * streams with seq_profile equal less than or equal to 1.
+ * @V4L2_MPEG_VIDEO_AV1_PROFILE_PROFESSIONAL: compliant decoders must be able to
+ * decode streams with seq_profile less than or equal to 2.
+ *
+ * Conveys the highest profile a decoder can work with.
+ */
+enum v4l2_mpeg_video_av1_profile {
+	V4L2_MPEG_VIDEO_AV1_PROFILE_MAIN = 0,
+	V4L2_MPEG_VIDEO_AV1_PROFILE_HIGH = 1,
+	V4L2_MPEG_VIDEO_AV1_PROFILE_PROFESSIONAL = 2,
+};
+
+#define V4L2_CID_MPEG_VIDEO_AV1_LEVEL (V4L2_CID_CODEC_BASE + 656)
+/**
+ * enum v4l2_mpeg_video_av1_level - AV1 levels
+ *
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_2_0: Level 2.0.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_2_1: Level 2.1.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_2_2: Level 2.2.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_2_3: Level 2.3.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_3_0: Level 3.0.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_3_1: Level 3.1.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_3_2: Level 3.2.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_3_3: Level 3.3.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_4_0: Level 4.0.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_4_1: Level 4.1.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_4_2: Level 4.2.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_4_3: Level 4.3.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_5_0: Level 5.0.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_5_1: Level 5.1.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_5_2: Level 5.2.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_5_3: Level 5.3.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_6_0: Level 6.0.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_6_1: Level 6.1.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_6_2: Level 6.2.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_6_3: Level 6.3.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_7_0: Level 7.0.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_7_1: Level 7.1.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_7_2: Level 7.2.
+ * @V4L2_MPEG_VIDEO_AV1_LEVEL_7_3: Level 7.3.
+ *
+ * Conveys the highest level a decoder can work with.
+ */
+enum v4l2_mpeg_video_av1_level {
+	V4L2_MPEG_VIDEO_AV1_LEVEL_2_0 = 0,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_2_1 = 1,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_2_2 = 2,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_2_3 = 3,
+
+	V4L2_MPEG_VIDEO_AV1_LEVEL_3_0 = 4,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_3_1 = 5,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_3_2 = 6,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_3_3 = 7,
+
+	V4L2_MPEG_VIDEO_AV1_LEVEL_4_0 = 8,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_4_1 = 9,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_4_2 = 10,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_4_3 = 11,
+
+	V4L2_MPEG_VIDEO_AV1_LEVEL_5_0 = 12,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_5_1 = 13,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_5_2 = 14,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_5_3 = 15,
+
+	V4L2_MPEG_VIDEO_AV1_LEVEL_6_0 = 16,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_6_1 = 17,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_6_2 = 18,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_6_3 = 19,
+
+	V4L2_MPEG_VIDEO_AV1_LEVEL_7_0 = 20,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_7_1 = 21,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_7_2 = 22,
+	V4L2_MPEG_VIDEO_AV1_LEVEL_7_3 = 23
+};
+
 /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
 #define V4L2_CID_CODEC_CX2341X_BASE				(V4L2_CTRL_CLASS_CODEC | 0x1000)
 #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE		(V4L2_CID_CODEC_CX2341X_BASE+0)

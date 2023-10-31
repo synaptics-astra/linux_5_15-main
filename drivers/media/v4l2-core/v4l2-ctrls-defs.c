@@ -566,6 +566,39 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
 		"External",
 		NULL,
 	};
+	static const char * const av1_profile[] = {
+		"Main",
+		"High",
+		"Professional",
+		NULL,
+	};
+	static const char * const av1_level[] = {
+		"2.0",
+		"2.1",
+		"2.2",
+		"2.3",
+		"3.0",
+		"3.1",
+		"3.2",
+		"3.3",
+		"4.0",
+		"4.1",
+		"4.2",
+		"4.3",
+		"5.0",
+		"5.1",
+		"5.2",
+		"5.3",
+		"6.0",
+		"6.1",
+		"6.2",
+		"6.3",
+		"7.0",
+		"7.1",
+		"7.2",
+		"7.3",
+		NULL,
+	};
 	static const char * const mpeg_video_frame_skip[] = {
 		"Disabled",
 		"Level Limit",
@@ -705,6 +738,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
 		return hevc_start_code;
 	case V4L2_CID_CAMERA_ORIENTATION:
 		return camera_orientation;
+	case V4L2_CID_MPEG_VIDEO_AV1_PROFILE:
+		return av1_profile;
+	case V4L2_CID_MPEG_VIDEO_AV1_LEVEL:
+		return av1_level;
 	default:
 		return NULL;
 	}
@@ -1000,6 +1037,10 @@ const char *v4l2_ctrl_get_name(u32 id)
 	case V4L2_CID_MPEG_VIDEO_HEVC_DECODE_PARAMS:		return "HEVC Decode Parameters";
 	case V4L2_CID_MPEG_VIDEO_HEVC_DECODE_MODE:		return "HEVC Decode Mode";
 	case V4L2_CID_MPEG_VIDEO_HEVC_START_CODE:		return "HEVC Start Code";
+
+	/* AV1 controls */
+	case V4L2_CID_MPEG_VIDEO_AV1_PROFILE:           return "AV1 Profile";
+	case V4L2_CID_MPEG_VIDEO_AV1_LEVEL:         return "AV1 Level";
 
 	/* CAMERA controls */
 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
@@ -1355,6 +1396,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
 	case V4L2_CID_STATELESS_H264_DECODE_MODE:
 	case V4L2_CID_STATELESS_H264_START_CODE:
 	case V4L2_CID_CAMERA_ORIENTATION:
+	case V4L2_CID_MPEG_VIDEO_AV1_PROFILE:
+	case V4L2_CID_MPEG_VIDEO_AV1_LEVEL:
 		*type = V4L2_CTRL_TYPE_MENU;
 		break;
 	case V4L2_CID_LINK_FREQ:
