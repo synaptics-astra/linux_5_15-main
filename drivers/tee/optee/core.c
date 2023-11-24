@@ -693,7 +693,7 @@ static int optee_probe(struct platform_device *pdev)
 	optee->invoke_fn = invoke_fn;
 	optee->sec_caps = sec_caps;
 
-	teedev = tee_device_alloc(&optee_desc, NULL, pool, optee);
+	teedev = tee_device_alloc(&optee_desc, &pdev->dev, pool, optee);
 	if (IS_ERR(teedev)) {
 		rc = PTR_ERR(teedev);
 		goto err;
