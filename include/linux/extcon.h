@@ -229,6 +229,8 @@ struct extcon_dev *extcon_get_edev_by_phandle(struct device *dev,
 /* Following API get the name of extcon device. */
 const char *extcon_get_edev_name(struct extcon_dev *edev);
 
+/* Following API set the name of extcon device. */
+extern void extcon_set_edev_name(struct extcon_dev *edev, const char *name);
 #else /* CONFIG_EXTCON */
 static inline int extcon_get_state(struct extcon_dev *edev, unsigned int id)
 {
@@ -314,6 +316,9 @@ static inline const char *extcon_get_edev_name(struct extcon_dev *edev)
 {
 	return NULL;
 }
+
+static inline void extcon_set_edev_name(struct extcon_dev *edev,
+					const char *name) { }
 #endif /* CONFIG_EXTCON */
 
 /*
