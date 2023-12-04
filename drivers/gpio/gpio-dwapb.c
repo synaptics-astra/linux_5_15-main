@@ -831,7 +831,17 @@ static struct platform_driver dwapb_gpio_driver = {
 	.probe		= dwapb_gpio_probe,
 };
 
-module_platform_driver(dwapb_gpio_driver);
+static int __init dwapb_gpio_driver_init(void)
+{
+	return platform_driver_register(&dwapb_gpio_driver);
+}
+subsys_initcall(dwapb_gpio_driver_init);
+
+static void __exit dwapb_gpio_driver_exit(void)
+{
+	platform_driver_unregister(&dwapb_gpio_driver);
+}
+module_exit(dwapb_gpio_driver_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Jamie Iles");
