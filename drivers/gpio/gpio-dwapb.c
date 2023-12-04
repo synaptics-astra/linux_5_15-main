@@ -816,10 +816,15 @@ static int dwapb_gpio_resume(struct device *dev)
 
 	return 0;
 }
+#else
+#define dwapb_gpio_suspend	NULL
+#define dwapb_gpio_resume	NULL
 #endif
 
-static SIMPLE_DEV_PM_OPS(dwapb_gpio_pm_ops, dwapb_gpio_suspend,
-			 dwapb_gpio_resume);
+static const struct dev_pm_ops dwapb_gpio_pm_ops = {
+	.suspend_noirq = dwapb_gpio_suspend,
+	.resume_noirq = dwapb_gpio_resume,
+};
 
 static struct platform_driver dwapb_gpio_driver = {
 	.driver		= {
