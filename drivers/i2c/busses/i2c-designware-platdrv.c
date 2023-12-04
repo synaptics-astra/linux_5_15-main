@@ -134,6 +134,10 @@ static int mscc_twi_set_sda_hold_time(struct dw_i2c_dev *dev)
 static int dw_i2c_of_configure(struct platform_device *pdev)
 {
 	struct dw_i2c_dev *dev = platform_get_drvdata(pdev);
+	bool flag = of_property_read_bool(pdev->dev.of_node, "no-irq-suspend");
+
+	if (flag)
+		dev->flags |= ACCESS_NO_IRQ_SUSPEND;
 
 	switch (dev->flags & MODEL_MASK) {
 	case MODEL_MSCC_OCELOT:
