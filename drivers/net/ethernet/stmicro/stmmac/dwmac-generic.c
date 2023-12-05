@@ -46,6 +46,9 @@ static int dwmac_generic_probe(struct platform_device *pdev)
 		plat_dat->unicast_filter_entries = 1;
 	}
 
+	if (of_device_is_compatible(pdev->dev.of_node, "snps,dwmac"))
+		plat_dat->rx_clk_runs_in_lpi = 1;
+
 	/* Custom initialisation (if needed) */
 	if (plat_dat->init) {
 		ret = plat_dat->init(pdev, plat_dat->bsp_priv);
