@@ -1944,4 +1944,8 @@ config SND_SOC_LPASS_TX_MACRO
 	select REGMAP_MMIO
 	tristate "Qualcomm TX Macro in LPASS(Low Power Audio SubSystem)"
 
+config SND_SOC_CX9000
+	tristate "Synaptics CX9000 AMPLIFIER"
+	depends on I2C
+
 endmenu
