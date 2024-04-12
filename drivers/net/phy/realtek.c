@@ -27,6 +27,7 @@
 #define RTL821x_EXT_PAGE_SELECT			0x1e
 #define RTL821x_PAGE_SELECT			0x1f
 
+#define RTL8211F_RXCSSC				0x13
 #define RTL8211F_PHYCR1				0x18
 #define RTL8211F_PHYCR2				0x19
 #define RTL8211F_INSR				0x1d
@@ -404,6 +405,33 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 			       RTL8211F_CLKOUT_EN, priv->phycr2);
 	if (ret < 0) {
 		dev_err(dev, "clkout configuration failed: %pe\n",
+			ERR_PTR(ret));
+		return ret;
+	}
+
+	ret = phy_write_paged(phydev, 0xc44, RTL8211F_RXCSSC, 0x5F00);
+	if (ret < 0) {
+		dev_err(dev, "RXC SSC initialization and enable ssc failed: %pe\n",
+			ERR_PTR(ret));
+		return ret;
+	}
+	ret = phy_write_paged(phydev, 0, 0, 0x8100);
+	if (ret < 0) {
+		dev_err(dev, "PHY reset failed: %pe\n",
+			ERR_PTR(ret));
+		return ret;
+	}
+
+
+	ret = phy_write_paged(phydev, 0xa43, RTL8211F_PHYCR2, 0x33EA);
+	if (ret < 0) {
+		dev_err(dev, "enable system clock ssc failed: %pe\n",
+			ERR_PTR(ret));
+		return ret;
+	}
+	ret = phy_write_paged(phydev, 0, 0, 0x8100);
+	if (ret < 0) {
+		dev_err(dev, "PHY reset failed: %pe\n",
 			ERR_PTR(ret));
 		return ret;
 	}
