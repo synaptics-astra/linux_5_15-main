@@ -485,3 +485,6 @@ int berlin_pinctrl_resume(struct device *dev)
 
 	return 0;
 }
+
+MODULE_LICENSE("GPL v2");
+MODULE_DESCRIPTION("pinctrl library for Synaptics SoCs");
