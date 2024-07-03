@@ -602,7 +602,7 @@ static int dwcmshc_phy_dll_cal(struct sdhci_host *host)
 		ret = 5000 / 4 / vals;
 	if (!ret)
 		return -EINVAL;
-	ret = (1400 + priv->dll_delay_offset) / ret;
+	ret = priv->dll_delay_offset / ret;
 	ret++;
 
 	dev_info(mmc_dev(host->mmc), "dll-calibration result: %d\n", ret);
@@ -835,7 +835,7 @@ static int dwcmshc_probe(struct platform_device *pdev)
 	err = of_property_read_u32(np, "dll-delay-offset",
 				   &priv->dll_delay_offset);
 	if (err < 0)
-		priv->dll_delay_offset = 400;
+		priv->dll_delay_offset = 1000;
 	priv->dll_cal = of_property_read_bool(np, "dll-calibration");
 	priv->mode1_tune = of_property_read_bool(np, "mode1-tune");
 	if (priv->phy_offset)
