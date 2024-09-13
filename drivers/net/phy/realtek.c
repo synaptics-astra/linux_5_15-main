@@ -43,6 +43,7 @@
 #define RTL8211E_RX_DELAY			BIT(11)
 
 #define RTL8211F_CLKOUT_EN			BIT(0)
+#define RTL8211F_SYSCLK_SSC			BIT(3)
 
 #define RTL8201F_ISR				0x1e
 #define RTL8201F_ISR_ANERR			BIT(15)
@@ -71,6 +72,9 @@
 
 #define RTL_GENERIC_PHYID			0x001cc800
 
+#define RTL8211F_SSC_RXC_EN			BIT(0)
+#define RTL8211F_SSC_SYSCLK_EN			BIT(1)
+
 MODULE_DESCRIPTION("Realtek PHY driver");
 MODULE_AUTHOR("Johnson Leung");
 MODULE_LICENSE("GPL");
@@ -78,6 +82,7 @@ MODULE_LICENSE("GPL");
 struct rtl821x_priv {
 	u16 phycr1;
 	u16 phycr2;
+	u32 flags;
 };
 
 static int rtl821x_read_page(struct phy_device *phydev)
@@ -115,6 +120,12 @@ static int rtl821x_probe(struct phy_device *phydev)
 	priv->phycr2 = ret & RTL8211F_CLKOUT_EN;
 	if (of_property_read_bool(dev->of_node, "realtek,clkout-disable"))
 		priv->phycr2 &= ~RTL8211F_CLKOUT_EN;
+
+	if (of_property_read_bool(dev->of_node, "realtek,rxc-ssc-enable"))
+		priv->flags |= RTL8211F_SSC_RXC_EN;
+
+	if (of_property_read_bool(dev->of_node, "realtek,sysclk-ssc-enable"))
+		priv->flags |= RTL8211F_SSC_SYSCLK_EN;
 
 	phydev->priv = priv;
 
@@ -398,6 +409,28 @@ static int rtl8211f_config_init(struct phy_device *phydev)
 		dev_dbg(dev,
 			"2ns RX delay was already %s (by pin-strapping RXD0 or bootloader configuration)\n",
 			val_rxdly ? "enabled" : "disabled");
+	}
+
+	if ((priv->flags & RTL8211F_SSC_RXC_EN)) {
+		ret = phy_modify_paged(phydev, 0xc44, 0x13, 0x5F00, 0x5F00);
+		if (ret < 0) {
+			dev_err(dev, "Failed to init and enable rxc ssc\n");
+			return ret;
+		}
+	}
+
+	if ((priv->flags & RTL8211F_SSC_SYSCLK_EN)) {
+		ret = phy_modify_paged(phydev, 0xc44, 0x17, 0x4F00, 0x4F00);
+		if (ret < 0) {
+			dev_err(dev, "Failed to init sysclk ssc\n");
+			return ret;
+		}
+
+		ret = phy_modify_paged(phydev, 0xa43, RTL8211F_PHYCR2, RTL8211F_SYSCLK_SSC, RTL8211F_SYSCLK_SSC);
+		if (ret < 0) {
+			dev_err(dev, "Failed to enable sysclk ssc\n");
+			return ret;
+		}
 	}
 
 	ret = phy_modify_paged(phydev, 0xa43, RTL8211F_PHYCR2,
