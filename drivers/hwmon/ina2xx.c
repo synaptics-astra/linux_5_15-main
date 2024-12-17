@@ -50,13 +50,15 @@
 /* INA226 register definitions */
 #define INA226_MASK_ENABLE		0x06
 #define INA226_ALERT_LIMIT		0x07
+#define INA226_MANUFACTURER_ID		0xFE
 #define INA226_DIE_ID			0xFF
 
+#define INA226_ID			0x5449
 /* register count */
 #define INA219_REGISTERS		6
 #define INA226_REGISTERS		8
 
-#define INA2XX_MAX_REGISTERS		8
+#define INA2XX_MAX_REGISTERS		255
 
 /* settings - depend on use case */
 #define INA219_CONFIG_DEFAULT		0x399F	/* PGA=8 */
@@ -127,7 +129,7 @@ static const struct ina2xx_config ina2xx_config[] = {
 	[ina219] = {
 		.config_default = INA219_CONFIG_DEFAULT,
 		.calibration_value = 4096,
-		.registers = INA219_REGISTERS,
+		.registers = INA2XX_MAX_REGISTERS,
 		.shunt_div = 100,
 		.bus_voltage_shift = 3,
 		.bus_voltage_lsb = 4000,
@@ -136,7 +138,7 @@ static const struct ina2xx_config ina2xx_config[] = {
 	[ina226] = {
 		.config_default = INA226_CONFIG_DEFAULT,
 		.calibration_value = 2048,
-		.registers = INA226_REGISTERS,
+		.registers = INA2XX_MAX_REGISTERS,
 		.shunt_div = 400,
 		.bus_voltage_shift = 0,
 		.bus_voltage_lsb = 1250,
@@ -615,6 +617,21 @@ static const struct attribute_group ina226_group = {
 
 static const struct i2c_device_id ina2xx_id[];
 
+static int chip_detect(struct device *dev, struct ina2xx_data *data)
+{
+	int regval = 0;
+	int ret;
+
+	ret = regmap_read(data->regmap, INA226_MANUFACTURER_ID, &regval);
+	if (ret < 0)
+		dev_dbg(dev, "failed to find manufacturer id\n");
+
+	if (regval == INA226_ID)
+		return ina226;
+	else
+		return ina219;
+}
+
 static int ina2xx_probe(struct i2c_client *client)
 {
 	struct device *dev = &client->dev;
@@ -623,19 +640,27 @@ static int ina2xx_probe(struct i2c_client *client)
 	u32 val;
 	int ret, group = 0;
 	enum ina2xx_ids chip;
-
-	if (client->dev.of_node)
-		chip = (enum ina2xx_ids)of_device_get_match_data(&client->dev);
-	else
-		chip = i2c_match_id(ina2xx_id, client)->driver_data;
+	char *chip_name;
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
 		return -ENOMEM;
 
 	/* set the device type */
-	data->config = &ina2xx_config[chip];
+
 	mutex_init(&data->config_lock);
+
+	ina2xx_regmap_config.max_register = INA2XX_MAX_REGISTERS;
+
+	data->regmap = devm_regmap_init_i2c(client, &ina2xx_regmap_config);
+	if (IS_ERR(data->regmap)) {
+		dev_err(dev, "failed to allocate register map\n");
+		return PTR_ERR(data->regmap);
+	}
+
+	chip = chip_detect(dev, data);
+
+	data->config = &ina2xx_config[chip];
 
 	if (of_property_read_u32(dev->of_node, "shunt-resistor", &val) < 0) {
 		struct ina2xx_platform_data *pdata = dev_get_platdata(dev);
@@ -648,14 +673,6 @@ static int ina2xx_probe(struct i2c_client *client)
 
 	ina2xx_set_shunt(data, val);
 
-	ina2xx_regmap_config.max_register = data->config->registers;
-
-	data->regmap = devm_regmap_init_i2c(client, &ina2xx_regmap_config);
-	if (IS_ERR(data->regmap)) {
-		dev_err(dev, "failed to allocate register map\n");
-		return PTR_ERR(data->regmap);
-	}
-
 	ret = ina2xx_init(data);
 	if (ret < 0) {
 		dev_err(dev, "error configuring the device: %d\n", ret);
@@ -663,16 +680,20 @@ static int ina2xx_probe(struct i2c_client *client)
 	}
 
 	data->groups[group++] = &ina2xx_group;
-	if (chip == ina226)
+	if (chip == ina226) {
 		data->groups[group++] = &ina226_group;
+		chip_name = "ina226";
+	} else {
+		chip_name = "ina220";
+	}
 
-	hwmon_dev = devm_hwmon_device_register_with_groups(dev, client->name,
+	hwmon_dev = devm_hwmon_device_register_with_groups(dev, chip_name,
 							   data, data->groups);
 	if (IS_ERR(hwmon_dev))
 		return PTR_ERR(hwmon_dev);
 
 	dev_info(dev, "power monitor %s (Rshunt = %li uOhm)\n",
-		 client->name, data->rshunt);
+		 chip_name, data->rshunt);
 
 	return 0;
 }
