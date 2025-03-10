@@ -882,7 +882,6 @@ static int dwcmshc_remove(struct platform_device *pdev)
 	return 0;
 }
 
-#ifdef CONFIG_PM_SLEEP
 static int dwcmshc_suspend(struct device *dev)
 {
 	struct sdhci_host *host = dev_get_drvdata(dev);
@@ -901,6 +900,7 @@ static int dwcmshc_suspend(struct device *dev)
 	return ret;
 }
 
+#ifdef CONFIG_PM_SLEEP
 static int dwcmshc_resume(struct device *dev)
 {
 	struct sdhci_host *host = dev_get_drvdata(dev);
@@ -924,6 +924,11 @@ static int dwcmshc_resume(struct device *dev)
 
 static SIMPLE_DEV_PM_OPS(dwcmshc_pmops, dwcmshc_suspend, dwcmshc_resume);
 
+static void dwcmshc_shutdown(struct platform_device *pdev)
+{
+	dwcmshc_suspend(&pdev->dev);
+}
+
 static const struct of_device_id sdhci_dwcmshc_dt_ids[] = {
 	{ .compatible = "snps,dwcmshc-sdhci" },
 	{}
@@ -939,6 +944,7 @@ static struct platform_driver sdhci_dwcmshc_driver = {
 	},
 	.probe	= dwcmshc_probe,
 	.remove	= dwcmshc_remove,
+	.shutdown = dwcmshc_shutdown,
 };
 module_platform_driver(sdhci_dwcmshc_driver);
 
