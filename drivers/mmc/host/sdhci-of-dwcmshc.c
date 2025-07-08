@@ -135,6 +135,7 @@ struct dwcmshc_priv {
 	u8			pad_sn;
 	u8			pad_sp;
 	u8			drv_strength;
+	u8			txdelay;
 	bool			dll_cal;
 	bool			mode1_tune;
 	u32			dll_delay_offset;
@@ -720,7 +721,7 @@ static void dwcmshc_set_uhs_signaling(struct sdhci_host *host,
 	else if (timing == MMC_TIMING_MMC_HS200)
 		txdelay = 40;
 	else if (timing == MMC_TIMING_MMC_HS400)
-		txdelay = dwcmshc_choose_hs400_txdelay(host, priv);
+		txdelay = priv->txdelay;
 
 	if (txdelay)
 		dwcmshc_set_phy_tx_delay(host, txdelay);
@@ -734,6 +735,12 @@ static int dwcmshc_execute_tuning(struct mmc_host *mmc, u32 opcode)
 	u32 vendor_ptr = priv->vendor_ptr;
 	u16 clk;
 	u32 val;
+
+	if (opcode == MMC_SEND_TUNING_BLOCK_HS200) {
+		priv->txdelay = dwcmshc_choose_hs400_txdelay(host, priv);
+		if (priv->txdelay)
+			dwcmshc_set_phy_tx_delay(host, priv->txdelay);
+	}
 
 	if (priv->mode1_tune) {
 		if (host->tuning_mode != SDHCI_TUNING_MODE_1)
