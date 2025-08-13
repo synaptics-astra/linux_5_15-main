@@ -26,12 +26,19 @@ config BCMDHD591
 	bool "BCMDHD591"
 	default n
 
+config BCMDHD361
+	bool "BCMDHD361"
+	default n
+
 source "drivers/net/wireless/bcmdhd/Kconfig"
 if BCMDHD103
 source "drivers/net/wireless/bcmdhd103/Kconfig"
 endif
 if BCMDHD591
 source "drivers/net/wireless/bcmdhd591/Kconfig"
+endif
+if BCMDHD361
+source "drivers/net/wireless/bcmdhd361/Kconfig"
 endif
 source "drivers/net/wireless/admtek/Kconfig"
 source "drivers/net/wireless/ath/Kconfig"
