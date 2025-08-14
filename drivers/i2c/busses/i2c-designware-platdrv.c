@@ -383,7 +383,8 @@ static int dw_i2c_plat_suspend(struct device *dev)
 {
 	struct dw_i2c_dev *i_dev = dev_get_drvdata(dev);
 
-	i_dev->suspended = true;
+	if (!(i_dev->flags & ACCESS_NO_IRQ_SUSPEND))
+		i_dev->suspended = true;
 
 	if (i_dev->shared_with_punit)
 		return 0;
@@ -402,7 +403,8 @@ static int dw_i2c_plat_resume(struct device *dev)
 		i2c_dw_prepare_clk(i_dev, true);
 
 	i_dev->init(i_dev);
-	i_dev->suspended = false;
+	if (!(i_dev->flags & ACCESS_NO_IRQ_SUSPEND))
+		i_dev->suspended = false;
 
 	return 0;
 }
